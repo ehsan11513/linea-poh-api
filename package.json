@@ -1,0 +1,23 @@
+{
+  "name": "linea-poh-api-proxy",
+  "version": "1.0.0",
+  "description": "REST API proxy for Linea Proof of Humanity verification, compatible with Layer3 Custom API Integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "linea",
+    "proof-of-humanity",
+    "poh",
+    "layer3",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+
