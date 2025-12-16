@@ -40,7 +40,9 @@ The server will start on port 3000 (or the port specified in the `PORT` environm
 - **Success (200):** `{"status": "success"}` - Address has PoH
 - **Failed (200):** `{"status": "failed"}` - Address does not have PoH
 - **Client Error (400):** `{"status": "failed", "message": "..."}` - Invalid request
+- **Rate Limited (429):** `{"status": "failed", "message": "Rate limit exceeded..."}` - Too many requests
 - **Server Error (500):** `{"status": "failed", "message": "..."}` - Internal error
+- **Service Unavailable (503):** `{"status": "failed", "message": "Service temporarily unavailable..."}` - Linea API rate limited
 
 **Example:**
 ```bash
@@ -91,9 +93,33 @@ Returns API information and available endpoints.
 ### AWS Lambda / Serverless
 You may need to adapt the code for serverless functions. Consider using `serverless-http` or similar.
 
+## Scalability Features
+
+This API includes built-in scalability features to handle high traffic:
+
+### Caching
+- **In-memory cache** for PoH verification results
+- **Default TTL**: 5 minutes (300 seconds)
+- **Benefits**: Reduces calls to Linea's API, faster response times, lower rate limit risk
+- **Why it works**: PoH status is on-chain and doesn't change frequently
+
+### Rate Limiting
+- **Client-side rate limiting**: 100 requests per minute per IP address
+- **Benefits**: Prevents abuse, protects Linea's API from being overwhelmed
+- **Response**: Returns `429 Too Many Requests` when limit exceeded
+
+### Configuration
+You can adjust these via environment variables:
+- `CACHE_TTL`: Cache time-to-live in milliseconds (default: 300000 = 5 minutes)
+- `RATE_LIMIT_WINDOW`: Rate limit window in milliseconds (default: 60000 = 1 minute)
+- `RATE_LIMIT_MAX_REQUESTS`: Max requests per window (default: 100)
+
 ## Environment Variables
 
 - `PORT` (optional): Server port (default: 3000)
+- `CACHE_TTL` (optional): Cache TTL in milliseconds (default: 300000 = 5 minutes)
+- `RATE_LIMIT_WINDOW` (optional): Rate limit window in milliseconds (default: 60000 = 1 minute)
+- `RATE_LIMIT_MAX_REQUESTS` (optional): Max requests per window per IP (default: 100)
 
 ## Error Handling
 
@@ -120,7 +146,10 @@ curl "http://localhost:3000/verify?address=invalid"
 - This API is stateless and requires no authentication
 - Linea's PoH API is free to use and requires no API keys
 - The API handles all error cases according to Layer3's specification
-- Response times depend on Linea's PoH API response time
+- Response times are optimized with caching (cached responses are instant)
+- **Scalability**: The API can handle high traffic thanks to caching and rate limiting
+- **Vercel Deployment**: Vercel's serverless functions auto-scale, but each instance has its own cache
+- **Production Ready**: Suitable for production use with thousands of concurrent users
 
 ## References
 
